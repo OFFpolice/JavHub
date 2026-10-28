@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import {
   Menu,
   X,
@@ -24,6 +25,7 @@ interface NavbarProps {
   isSortNewest?: boolean;
   searchQuery?: string;
   onSearch?: (query: string) => void;
+  isVideoWatching?: boolean;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
@@ -36,11 +38,17 @@ export const Navbar: React.FC<NavbarProps> = ({
   isSortNewest = false,
   searchQuery = '',
   onSearch,
+  isVideoWatching = false,
 }) => {
+  const [mounted, setMounted] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
   const [searchValue, setSearchValue] = useState(searchQuery);
   const mobileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // Keep local search input in sync with external prop
   useEffect(() => {
@@ -91,7 +99,7 @@ export const Navbar: React.FC<NavbarProps> = ({
 
   return (
     <>
-      <header className="sticky top-0 z-40 w-full border-b border-slate-800 bg-[#090b10] gpu-layer">
+      <header className="sticky top-0 z-40 w-full border-b border-slate-800 bg-[#090b10]/95 backdrop-blur-md">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 relative flex items-center justify-between gap-3">
           {/* Mobile Full-width Search Overlay */}
           {isMobileSearchOpen ? (
@@ -139,7 +147,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           <div className="flex items-center justify-start z-10 shrink-0">
             <button
               onClick={() => setIsMenuOpen(true)}
-              className="p-2 sm:p-2.5 rounded-xl border bg-slate-900 hover:bg-slate-850 text-slate-200 hover:text-white border-slate-800 hover:border-slate-700 transition-colors shadow-sm flex items-center justify-center shrink-0"
+              className="p-2 sm:p-2.5 rounded-xl border bg-slate-900 hover:bg-slate-850 active:scale-95 text-slate-200 hover:text-white border-slate-800 hover:border-slate-700 transition-all shadow-sm flex items-center justify-center shrink-0 cursor-pointer"
               aria-expanded={isMenuOpen}
               aria-label="Открыть меню"
               title="Открыть меню"
@@ -195,7 +203,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                   type="button"
                   onClick={handleClearSearch}
                   aria-label="Очистить поиск"
-                  className="absolute right-2 p-1 text-slate-400 hover:text-white transition-colors"
+                  className="absolute right-2 p-1 text-slate-400 hover:text-white transition-colors cursor-pointer"
                 >
                   <X className="w-3.5 h-3.5" />
                 </button>
@@ -205,7 +213,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             {/* Mobile Search Icon Button */}
             <button
               onClick={() => setIsMobileSearchOpen(true)}
-              className="sm:hidden p-2 rounded-xl border bg-slate-900 hover:bg-slate-850 text-slate-200 hover:text-white border-slate-800 hover:border-slate-700 transition-colors shadow-sm flex items-center justify-center"
+              className="sm:hidden p-2 rounded-xl border bg-slate-900 hover:bg-slate-850 active:scale-95 text-slate-200 hover:text-white border-slate-800 hover:border-slate-700 transition-all shadow-sm flex items-center justify-center cursor-pointer"
               aria-label="Открыть поиск"
               title="Поиск"
             >
@@ -215,177 +223,224 @@ export const Navbar: React.FC<NavbarProps> = ({
         </div>
       </header>
 
-      {/* Backdrop overlay */}
-      <div
-        className={`fixed inset-0 z-50 bg-black/80 transition-opacity duration-300 gpu-layer ${
-          isMenuOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
-        }`}
-        onClick={() => setIsMenuOpen(false)}
-        aria-hidden="true"
-      />
-
-      {/* Drawer Sidebar: slides out from left to right */}
-      <aside
-        className={`fixed inset-y-0 left-0 z-50 w-72 sm:w-80 max-w-[85vw] bg-[#0c1017] border-r border-slate-800 shadow-2xl flex flex-col transform transition-transform duration-300 ease-out gpu-layer ${
-          isMenuOpen ? 'translate-x-0' : '-translate-x-full'
-        }`}
-        role="dialog"
-        aria-modal="true"
-        aria-label="Главное меню"
-      >
-        {/* Drawer Header */}
-        <div className="flex items-center justify-between px-5 py-4 border-b border-slate-800 bg-[#090b10]">
-          <div className="flex items-center gap-2">
-            <span className="font-display text-lg font-bold text-white tracking-tight">
-              JavHub<span className="text-rose-500">.life</span>
-            </span>
-          </div>
-
-          <button
+      {/* Portal-rendered Backdrop & Drawer: Guaranteed to anchor to viewport at any scroll position */}
+      {mounted && typeof document !== 'undefined' && createPortal(
+        <div className={`fixed inset-0 z-[100] ${isMenuOpen ? 'pointer-events-auto' : 'pointer-events-none'}`}>
+          {/* Backdrop overlay */}
+          <div
+            className={`fixed inset-0 bg-black/80 backdrop-blur-xs transition-opacity duration-300 ${
+              isMenuOpen ? 'opacity-100' : 'opacity-0'
+            }`}
             onClick={() => setIsMenuOpen(false)}
-            className="p-2 text-slate-400 hover:text-white hover:bg-slate-850 rounded-lg transition-colors"
-            aria-label="Закрыть меню"
-            title="Закрыть меню"
+            aria-hidden="true"
+          />
+
+          {/* Drawer Sidebar: slides out from left to right */}
+          <aside
+            className={`fixed inset-y-0 left-0 w-72 sm:w-80 max-w-[85vw] bg-[#0c1017] border-r border-slate-800 shadow-2xl flex flex-col transform transition-transform duration-300 ease-out ${
+              isMenuOpen ? 'translate-x-0' : '-translate-x-full'
+            }`}
+            role="dialog"
+            aria-modal="true"
+            aria-label="Главное меню"
           >
-            <X className="w-5 h-5" />
-          </button>
-        </div>
-
-        {/* Drawer Body: 8 Menu items */}
-        <div className="flex-1 overflow-y-auto p-3 space-y-1 divide-y divide-slate-800/80">
-          {/* Main 6 navigation items */}
-          <div className="space-y-1 pb-2">
-            {/* 1. Главная */}
-            <button
-              onClick={() => handleSelectMenuTab('catalog')}
-              className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-medium transition-colors text-left ${
-                activeTab === 'catalog'
-                  ? 'bg-rose-600/20 text-rose-300 font-semibold'
-                  : 'text-slate-300 hover:text-white hover:bg-slate-850'
-              }`}
-            >
-              <div className="flex items-center gap-3">
-                <Home className="w-4 h-4 text-rose-400" />
-                <span>Главная</span>
+            {/* Drawer Header */}
+            <div className="flex items-center justify-between px-5 py-4 border-b border-slate-800 bg-[#090b10]">
+              <div className="flex items-center gap-2">
+                <span className="font-display text-lg font-bold text-white tracking-tight">
+                  JavHub<span className="text-rose-500">.life</span>
+                </span>
               </div>
-              {activeTab === 'catalog' && (
-                <span className="w-1.5 h-1.5 rounded-full bg-rose-500" />
-              )}
-            </button>
 
-            {/* 2. Популярные */}
-            <button
-              onClick={() => handleSelectMenuTab('trending')}
-              className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-medium transition-colors text-left ${
-                activeTab === 'trending'
-                  ? 'bg-rose-600/20 text-rose-300 font-semibold'
-                  : 'text-slate-300 hover:text-white hover:bg-slate-850'
-              }`}
-            >
-              <div className="flex items-center gap-3">
-                <Flame className="w-4 h-4 text-rose-400" />
-                <span>Популярные</span>
-              </div>
-              {activeTab === 'trending' && (
-                <span className="w-1.5 h-1.5 rounded-full bg-rose-500" />
-              )}
-            </button>
+              <button
+                onClick={() => setIsMenuOpen(false)}
+                className="p-2 text-slate-400 hover:text-white hover:bg-slate-850 rounded-lg transition-colors cursor-pointer"
+                aria-label="Закрыть меню"
+                title="Закрыть меню"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
 
-            {/* 3. Топ Рейтинг */}
-            <button
-              onClick={() => handleSelectMenuTab('top-rated')}
-              className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-medium transition-colors text-left ${
-                activeTab === 'top-rated'
-                  ? 'bg-rose-600/20 text-rose-300 font-semibold'
-                  : 'text-slate-300 hover:text-white hover:bg-slate-850'
-              }`}
-            >
-              <div className="flex items-center gap-3">
-                <Sparkles className="w-4 h-4 text-rose-400" />
-                <span>Топ Рейтинг</span>
-              </div>
-              {activeTab === 'top-rated' && (
-                <span className="w-1.5 h-1.5 rounded-full bg-rose-500" />
-              )}
-            </button>
+            {/* Drawer Body */}
+            <div className="flex-1 overflow-y-auto p-3 space-y-3">
+              {/* Quick Search inside Drawer */}
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  if (searchValue.trim()) {
+                    onSearch?.(searchValue.trim());
+                    setIsMenuOpen(false);
+                  }
+                }}
+                className="relative"
+              >
+                <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                <input
+                  type="text"
+                  value={searchValue}
+                  onChange={(e) => setSearchValue(e.target.value)}
+                  placeholder="Поиск по каталогу..."
+                  className="w-full pl-9 pr-8 py-2 bg-slate-900 border border-slate-800 focus:border-rose-500 focus:ring-1 focus:ring-rose-500 rounded-xl text-xs text-slate-100 placeholder:text-slate-500 focus:outline-none transition-colors"
+                />
+                {searchValue && (
+                  <button
+                    type="button"
+                    onClick={handleClearSearch}
+                    aria-label="Очистить поиск"
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-white cursor-pointer"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                )}
+              </form>
 
-            {/* 4. Актрисы */}
-            <button
-              onClick={() => handleSelectMenuTab('actresses')}
-              className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-medium transition-colors text-left ${
-                activeTab === 'actresses'
-                  ? 'bg-rose-600/20 text-rose-300 font-semibold'
-                  : 'text-slate-300 hover:text-white hover:bg-slate-850'
-              }`}
-            >
-              <div className="flex items-center gap-3">
-                <Users className="w-4 h-4 text-rose-400" />
-                <span>Актрисы</span>
-              </div>
-              {activeTab === 'actresses' && (
-                <span className="w-1.5 h-1.5 rounded-full bg-rose-500" />
+              {/* Video watching status indicator */}
+              {isVideoWatching && (
+                <div className="px-3 py-2 rounded-xl bg-rose-500/10 border border-rose-500/25 flex items-center justify-between text-xs text-rose-300">
+                  <span className="flex items-center gap-2 font-medium">
+                    <span className="w-2 h-2 rounded-full bg-rose-500 animate-pulse" />
+                    Просмотр видео
+                  </span>
+                  <span className="text-[10px] text-slate-400">В плеере</span>
+                </div>
               )}
-            </button>
 
-            {/* 5. Студии */}
-            <button
-              onClick={() => handleSelectMenuTab('studios')}
-              className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-medium transition-colors text-left ${
-                activeTab === 'studios'
-                  ? 'bg-rose-600/20 text-rose-300 font-semibold'
-                  : 'text-slate-300 hover:text-white hover:bg-slate-850'
-              }`}
-            >
-              <div className="flex items-center gap-3">
-                <Building className="w-4 h-4 text-rose-400" />
-                <span>Студии</span>
-              </div>
-              {activeTab === 'studios' && (
-                <span className="w-1.5 h-1.5 rounded-full bg-rose-500" />
-              )}
-            </button>
+              {/* Main navigation items */}
+              <nav className="space-y-1">
+                {/* 1. Главная */}
+                <button
+                  onClick={() => handleSelectMenuTab('catalog')}
+                  className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-medium transition-colors text-left cursor-pointer ${
+                    !isVideoWatching && activeTab === 'catalog'
+                      ? 'bg-rose-600/20 text-rose-300 font-semibold'
+                      : 'text-slate-300 hover:text-white hover:bg-slate-850'
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <Home className="w-4 h-4 text-rose-400" />
+                    <span>Главная</span>
+                  </div>
+                  {!isVideoWatching && activeTab === 'catalog' && (
+                    <span className="w-1.5 h-1.5 rounded-full bg-rose-500" />
+                  )}
+                </button>
 
-            {/* 6. Жанры */}
-            <button
-              onClick={() => handleSelectMenuTab('categories')}
-              className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-medium transition-colors text-left ${
-                activeTab === 'categories'
-                  ? 'bg-rose-600/20 text-rose-300 font-semibold'
-                  : 'text-slate-300 hover:text-white hover:bg-slate-850'
-              }`}
-            >
-              <div className="flex items-center gap-3">
-                <Tags className="w-4 h-4 text-rose-400" />
-                <span>Жанры</span>
-              </div>
-              {activeTab === 'categories' && (
-                <span className="w-1.5 h-1.5 rounded-full bg-rose-500" />
-              )}
-            </button>
-          </div>
+                {/* 2. Популярные */}
+                <button
+                  onClick={() => handleSelectMenuTab('trending')}
+                  className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-medium transition-colors text-left cursor-pointer ${
+                    !isVideoWatching && activeTab === 'trending'
+                      ? 'bg-rose-600/20 text-rose-300 font-semibold'
+                      : 'text-slate-300 hover:text-white hover:bg-slate-850'
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <Flame className="w-4 h-4 text-rose-400" />
+                    <span>Популярные</span>
+                  </div>
+                  {!isVideoWatching && activeTab === 'trending' && (
+                    <span className="w-1.5 h-1.5 rounded-full bg-rose-500" />
+                  )}
+                </button>
 
-          {/* Filters & Sorting */}
-          <div className="space-y-1 pt-2">
-            {/* 7. Фильтры */}
-            <button
-              onClick={() => handleSelectMenuTab('filters')}
-              className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-medium transition-colors text-left ${
-                activeTab === 'filters'
-                  ? 'bg-rose-600/20 text-rose-300 font-semibold'
-                  : 'text-slate-300 hover:text-white hover:bg-slate-850'
-              }`}
-            >
-              <div className="flex items-center gap-3">
-                <SlidersHorizontal className="w-4 h-4 text-rose-400" />
-                <span>Фильтры</span>
-              </div>
-              {activeTab === 'filters' && (
-                <span className="w-1.5 h-1.5 rounded-full bg-rose-500" />
-              )}
-            </button>
-          </div>
-        </div>
-      </aside>
+                {/* 3. Топ Рейтинг */}
+                <button
+                  onClick={() => handleSelectMenuTab('top-rated')}
+                  className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-medium transition-colors text-left cursor-pointer ${
+                    !isVideoWatching && activeTab === 'top-rated'
+                      ? 'bg-rose-600/20 text-rose-300 font-semibold'
+                      : 'text-slate-300 hover:text-white hover:bg-slate-850'
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <Sparkles className="w-4 h-4 text-rose-400" />
+                    <span>Топ Рейтинг</span>
+                  </div>
+                  {!isVideoWatching && activeTab === 'top-rated' && (
+                    <span className="w-1.5 h-1.5 rounded-full bg-rose-500" />
+                  )}
+                </button>
+
+                {/* 4. Актрисы */}
+                <button
+                  onClick={() => handleSelectMenuTab('actresses')}
+                  className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-medium transition-colors text-left cursor-pointer ${
+                    !isVideoWatching && activeTab === 'actresses'
+                      ? 'bg-rose-600/20 text-rose-300 font-semibold'
+                      : 'text-slate-300 hover:text-white hover:bg-slate-850'
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <Users className="w-4 h-4 text-rose-400" />
+                    <span>Актрисы</span>
+                  </div>
+                  {!isVideoWatching && activeTab === 'actresses' && (
+                    <span className="w-1.5 h-1.5 rounded-full bg-rose-500" />
+                  )}
+                </button>
+
+                {/* 5. Студии */}
+                <button
+                  onClick={() => handleSelectMenuTab('studios')}
+                  className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-medium transition-colors text-left cursor-pointer ${
+                    !isVideoWatching && activeTab === 'studios'
+                      ? 'bg-rose-600/20 text-rose-300 font-semibold'
+                      : 'text-slate-300 hover:text-white hover:bg-slate-850'
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <Building className="w-4 h-4 text-rose-400" />
+                    <span>Студии</span>
+                  </div>
+                  {!isVideoWatching && activeTab === 'studios' && (
+                    <span className="w-1.5 h-1.5 rounded-full bg-rose-500" />
+                  )}
+                </button>
+
+                {/* 6. Жанры */}
+                <button
+                  onClick={() => handleSelectMenuTab('categories')}
+                  className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-medium transition-colors text-left cursor-pointer ${
+                    !isVideoWatching && activeTab === 'categories'
+                      ? 'bg-rose-600/20 text-rose-300 font-semibold'
+                      : 'text-slate-300 hover:text-white hover:bg-slate-850'
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <Tags className="w-4 h-4 text-rose-400" />
+                    <span>Жанры</span>
+                  </div>
+                  {!isVideoWatching && activeTab === 'categories' && (
+                    <span className="w-1.5 h-1.5 rounded-full bg-rose-500" />
+                  )}
+                </button>
+
+                {/* 7. Фильтры */}
+                <div className="pt-2 mt-2 border-t border-slate-800/80">
+                  <button
+                    onClick={() => handleSelectMenuTab('filters')}
+                    className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-medium transition-colors text-left cursor-pointer ${
+                      !isVideoWatching && activeTab === 'filters'
+                        ? 'bg-rose-600/20 text-rose-300 font-semibold'
+                        : 'text-slate-300 hover:text-white hover:bg-slate-850'
+                    }`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <SlidersHorizontal className="w-4 h-4 text-rose-400" />
+                      <span>Фильтры</span>
+                    </div>
+                    {!isVideoWatching && activeTab === 'filters' && (
+                      <span className="w-1.5 h-1.5 rounded-full bg-rose-500" />
+                    )}
+                  </button>
+                </div>
+              </nav>
+            </div>
+          </aside>
+        </div>,
+        document.body
+      )}
     </>
   );
 };

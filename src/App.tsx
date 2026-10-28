@@ -500,6 +500,7 @@ export default function App() {
       {/* Top Header Navbar */}
       <Navbar
         activeTab={activeTab}
+        isVideoWatching={!!selectedVideo}
         onSelectTab={handleSelectTab}
         onResetFilters={handleResetFilters}
         onToggleFilters={() => handleSelectTab('filters')}

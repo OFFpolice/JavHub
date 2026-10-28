@@ -19,8 +19,6 @@ export const VideoCard: React.FC<VideoCardProps> = ({
   const [imageError, setImageError] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
 
-  // Extract primary release code or fallback to studio/short tag
-  const displayCode = video.code || (video.title.match(/^([A-Za-z0-9]+-[0-9A-Za-z]+)/)?.[1] ?? '');
   const primaryActor = video.actors?.[0];
 
   return (
@@ -45,29 +43,12 @@ export const VideoCard: React.FC<VideoCardProps> = ({
         ) : (
           <div className="w-full h-full flex flex-col items-center justify-center p-4 bg-slate-950 text-slate-500">
             <Film className="w-8 h-8 mb-2 opacity-40 text-rose-500" />
-            <span className="text-xs font-mono text-slate-400 font-semibold">{displayCode || 'JAVHUB'}</span>
+            <span className="text-xs font-mono text-slate-400 font-semibold">JAVHUB</span>
           </div>
         )}
 
         {/* Contrast Scrim overlay */}
         <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-transparent opacity-80" />
-
-        {/* Top badges (Code & HD) */}
-        <div className="absolute top-2 left-2 right-2 flex items-center justify-between pointer-events-none">
-          {displayCode ? (
-            <span className="px-2 py-0.5 text-[11px] font-mono font-bold tracking-wider uppercase bg-black text-rose-400 border border-rose-500/40 rounded">
-              {displayCode}
-            </span>
-          ) : <div />}
-
-          <div className="flex items-center gap-1.5">
-            {video.is_hd && (
-              <span className="px-1.5 py-0.5 text-[10px] font-bold tracking-wider uppercase bg-rose-600 text-white rounded">
-                HD
-              </span>
-            )}
-          </div>
-        </div>
 
         {/* Center Play Button on hover */}
         <div
