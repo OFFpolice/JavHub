@@ -117,7 +117,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                   type="text"
                   value={searchValue}
                   onChange={(e) => setSearchValue(e.target.value)}
-                  placeholder="Поиск видео, актрис, студий..."
+                  placeholder="Поиск по сайту..."
                   aria-label="Поиск по сайту"
                   className="w-full pl-9 pr-9 py-2 bg-slate-900 border border-slate-700 focus:border-rose-500 rounded-xl text-sm text-slate-100 placeholder:text-slate-500 focus:outline-none"
                 />
@@ -280,7 +280,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                   type="text"
                   value={searchValue}
                   onChange={(e) => setSearchValue(e.target.value)}
-                  placeholder="Поиск по каталогу..."
+                  placeholder="Поиск по сайту..."
                   className="w-full pl-9 pr-8 py-2 bg-slate-900 border border-slate-800 focus:border-rose-500 focus:ring-1 focus:ring-rose-500 rounded-xl text-xs text-slate-100 placeholder:text-slate-500 focus:outline-none transition-colors"
                 />
                 {searchValue && (

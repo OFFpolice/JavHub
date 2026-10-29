@@ -6,13 +6,9 @@ import {
   Tag,
   Play,
   ChevronRight,
-  Download,
-  Share2,
-  Check,
 } from 'lucide-react';
 import { VideoPost } from '../types/api';
 import { formatViews, formatDate } from '../utils';
-import { DownloadModal } from '../components/DownloadModal';
 
 export type WatchSource =
   | { type: 'home' }
@@ -57,23 +53,6 @@ export const WatchPage: React.FC<WatchPageProps> = ({
   const playerStageRef = useRef<HTMLDivElement>(null);
 
   const [iframeLoaded, setIframeLoaded] = useState(false);
-  const [isDownloadOpen, setIsDownloadOpen] = useState(false);
-  const [isLinkCopied, setIsLinkCopied] = useState(false);
-
-  const handleShareLink = () => {
-    if (typeof navigator !== 'undefined' && navigator.share) {
-      navigator
-        .share({
-          title: video.title,
-          url: window.location.href,
-        })
-        .catch(() => {});
-    } else if (typeof navigator !== 'undefined' && navigator.clipboard) {
-      navigator.clipboard.writeText(window.location.href);
-      setIsLinkCopied(true);
-      setTimeout(() => setIsLinkCopied(false), 2000);
-    }
-  };
 
   // Reset loading animation whenever video changes
   useEffect(() => {
@@ -312,62 +291,21 @@ export const WatchPage: React.FC<WatchPageProps> = ({
           {video.title}
         </h1>
 
-        {/* METADATA & ACTIONS BAR */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 sm:py-2.5 sm:px-4 bg-slate-900/60 border border-slate-800/80 rounded-xl mb-6 text-xs sm:text-sm text-slate-400">
-          <div className="flex items-center gap-3">
-            <span className="flex items-center gap-1.5 font-medium text-slate-300">
-              <Eye className="w-4 h-4 text-slate-500" />
-              {formatViews(video.views)} просмотров
-            </span>
-            {video.date && (
-              <>
-                <span className="text-slate-700">·</span>
-                <span className="flex items-center gap-1.5">
-                  <Calendar className="w-4 h-4 text-slate-500" />
-                  {formatDate(video.date)}
-                </span>
-              </>
-            )}
-            {video.is_hd && (
-              <>
-                <span className="text-slate-700">·</span>
-                <span className="px-1.5 py-0.5 text-[10px] font-bold tracking-wider uppercase bg-rose-600/90 text-white rounded">
-                  HD 1080p
-                </span>
-              </>
-            )}
-          </div>
-
-          {/* Action buttons: Download & Share */}
-          <div className="flex items-center gap-2 self-end sm:self-center">
-            <button
-              type="button"
-              onClick={handleShareLink}
-              className="inline-flex items-center gap-1.5 px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white text-xs font-medium rounded-lg transition-colors cursor-pointer border border-slate-700/60"
-              title="Поделиться ссылкой"
-            >
-              {isLinkCopied ? (
-                <>
-                  <Check className="w-3.5 h-3.5 text-emerald-400" />
-                  <span className="text-emerald-400">Скопировано!</span>
-                </>
-              ) : (
-                <>
-                  <Share2 className="w-3.5 h-3.5 text-slate-400" />
-                  <span>Поделиться</span>
-                </>
-              )}
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setIsDownloadOpen(true)}
-              className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-rose-600 to-rose-700 hover:from-rose-500 hover:to-rose-600 text-white font-semibold text-xs sm:text-sm rounded-lg shadow-md shadow-rose-950/50 hover:shadow-rose-900/60 transition-all hover:scale-[1.02] active:scale-[0.98] cursor-pointer"
-            >
-              <Download className="w-4 h-4" />
-              <span>Скачать</span>
-            </button>
-          </div>
+        {/* METADATA BAR */}
+        <div className="flex items-center gap-3 p-3 sm:py-2.5 sm:px-4 bg-slate-900/60 border border-slate-800/80 rounded-xl mb-6 text-xs sm:text-sm text-slate-400">
+          <span className="flex items-center gap-1.5 font-medium text-slate-300">
+            <Eye className="w-4 h-4 text-slate-500" />
+            {formatViews(video.views)} просмотров
+          </span>
+          {video.date && (
+            <>
+              <span className="text-slate-700">·</span>
+              <span className="flex items-center gap-1.5">
+                <Calendar className="w-4 h-4 text-slate-500" />
+                {formatDate(video.date)}
+              </span>
+            </>
+          )}
         </div>
 
         {/* STUDIO & CAST INFORMATION CARDS */}
@@ -500,13 +438,6 @@ export const WatchPage: React.FC<WatchPageProps> = ({
           </div>
         )}
       </div>
-
-      {/* Download Video Modal */}
-      <DownloadModal
-        video={video}
-        isOpen={isDownloadOpen}
-        onClose={() => setIsDownloadOpen(false)}
-      />
     </div>
   );
 };
